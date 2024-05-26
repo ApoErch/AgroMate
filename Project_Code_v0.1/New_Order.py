@@ -13,7 +13,7 @@ class ProductOrderApp(tk.Toplevel):
         self.parent.title("Product Order")
 
         # Load product data from JSON file
-        with open("D:/jojo8/vscode/Python Programs/products.json", "r") as file:
+        with open("Project_Code_v0.1/products.json", "r") as file:
             self.product_data = json.load(file)
 
         # Create the main frames for the product, cart, and order history pages
@@ -65,7 +65,7 @@ class ProductOrderApp(tk.Toplevel):
         self.order_history = []
 
         # Load cart icon image
-        self.cart_icon = Image.open("D:/jojo8/vscode/Python Programs/png/cart.png")
+        self.cart_icon = Image.open("Project_Code_v0.1/PNGs/cart.png")
         self.cart_icon = self.cart_icon.resize((20, 20))
         self.cart_icon_photo = ImageTk.PhotoImage(self.cart_icon)
 
@@ -83,8 +83,7 @@ class ProductOrderApp(tk.Toplevel):
         self.create_category_buttons()
 
         # Button to confirm order
-        self.order_button = ctk.CTkButton(self.main_frame, text="Place Order", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8, command=self.confirm_order)
-        self.order_button.pack(pady=20)
+        
 
         # Label to show temporary messages
         self.message_label = tk.Label(self.top_frame, bg="#2E2E2E", fg="#00FF00", font=("Arial", 10, "bold"))

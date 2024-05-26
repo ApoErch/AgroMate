@@ -129,7 +129,7 @@ def MainPage(parent, show_login, show_signup):
     frame = tk.Frame(parent, bg="#2E2E2E")
     
     # Load and resize the image
-    logo = Image.open("D:/jojo8/vscode/Python Programs/PNGs/PNGs/logo.png")  # Path to your image file
+    logo = Image.open("Project_Code_v0.1/PNGs/logo.png")  # Path to your image file
     logo = logo.resize((210, 130), Image.LANCZOS)  # Adjust the size as needed
     logo_img = ImageTk.PhotoImage(logo)
 
@@ -279,12 +279,12 @@ def main():
         create_buttons()
 
     def create_buttons():
-        logout_icon = ImageTk.PhotoImage(Image.open("D:/jojo8/vscode/Python Programs/PNGs/PNGs/logout_icon.png").resize((30, 30)))
+        logout_icon = ImageTk.PhotoImage(Image.open("Project_Code_v0.1/PNGs/logout_icon.png").resize((30, 30)))
         root.logout_button = tk.Button(root, image=logout_icon, command=logout, bg="#2E2E2E", borderwidth=0, activebackground='#2E2E2E')
         root.logout_button.image = logout_icon
         root.logout_button.place(x=10, y=10)
 
-        settings_icon = ImageTk.PhotoImage(Image.open("D:/jojo8/vscode/Python Programs/PNGs/PNGs/settings_icon.png").resize((30, 30)))
+        settings_icon = ImageTk.PhotoImage(Image.open("Project_Code_v0.1/PNGs/settings_icon.png").resize((30, 30)))
         root.settings_button = tk.Button(root, image=settings_icon, command=open_settings, bg="#2E2E2E", borderwidth=0, activebackground='#2E2E2E')
         root.settings_button.image = settings_icon
         root.settings_button.place(x=260, y=10)
