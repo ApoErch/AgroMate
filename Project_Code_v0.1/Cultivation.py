@@ -3,6 +3,7 @@ from tkinter import ttk, messagebox
 import customtkinter as ctk
 import random
 from tkcalendar import Calendar
+import json
 
 cultivation_history = {}
 
@@ -36,6 +37,10 @@ class CultivationPage(tk.Toplevel):
         self.date_checked = False
 
         self.show_fields()
+
+    def save_cultivation_history(self):
+        with open("cultivation_history.json", "w") as file:
+            json.dump(cultivation_history, file, indent=4)
 
     def show_fields(self):
         self.clear_frame()
@@ -201,6 +206,9 @@ class CultivationPage(tk.Toplevel):
             "Required Plant Medicines": required_medicines
         }
         
+        # Save the cultivation history to a JSON file
+        self.save_cultivation_history()
+
         self.show_confirmation_page()
 
     def show_confirmation_page(self):

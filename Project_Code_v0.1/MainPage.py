@@ -9,6 +9,7 @@ from New_Order import ProductOrderApp
 from aggelia import SellProductsApp
 
 
+
 # Path to the credentials file
 CREDENTIALS_FILE = "credentials.json"
 
@@ -34,7 +35,7 @@ def switch_frame(parent, new_frame):
     parent.current_frame = new_frame
     parent.current_frame.pack(expand=True, fill="both")
 
-def LoginPage(parent, show_main_menu, show_main_page):
+def LoginPage(parent, show_main_menu, show_shop_menu, show_main_page):
     frame = tk.Frame(parent, bg="#2E2E2E")
     
     ttk.Label(frame, text="Email:", background="#2E2E2E", foreground="#00FF00").pack(pady=(50, 0))
@@ -50,11 +51,11 @@ def LoginPage(parent, show_main_menu, show_main_page):
         password = password_entry.get()
         if email in user_credentials and user_credentials[email]['password'] == password:
             user_type = user_credentials[email]['type']
+            parent.current_user_email = email  # Store current user email
             if user_type == 'farmer':
-                parent.current_user_email = email  # Store current user email
                 show_main_menu()
             else:
-                messagebox.showinfo("Error", "You are not authorized to access this menu.")
+                show_shop_menu()
         else:
             messagebox.showerror("Error", "Invalid credentials.")
 
@@ -198,6 +199,57 @@ def FarmerMainMenu(parent, show_main_page):
 
     return frame
 
+def ShopMainMenu(parent, show_main_page):
+    frame = tk.Frame(parent, bg="#2E2E2E")
+    button_style = {
+        "fg_color": "#2E2E2E",
+        "border_width": 2,
+        "border_color": "#00FF00",
+        "text_color": "#00FF00",
+        "corner_radius": 8,
+        "width": 200,
+        "height": 40,
+        "hover_color": "#FFFFFF",
+    }
+
+    # Define functions for non-farmer menu options
+    def pending_orders():
+        pass  # Replace with actual function
+
+    def assign_agronomist():
+        pass  # Replace with actual function
+
+    def products():
+        pass  # Replace with actual function
+
+    def service_control():
+        pass  # Replace with actual function
+
+    def information():
+        pass  # Replace with actual function
+
+    def calendar():
+        pass  # Replace with actual function
+
+    def expirements():
+        pass  # Replace with actual function
+
+    button_texts = [
+        ("Pending Orders", pending_orders),
+        ("Assign Agronomist", assign_agronomist),
+        ("Products", products),
+        ("Service Control", service_control),
+        ("Information", information),
+        ("Calendar", calendar),
+        ("Expirements", expirements)
+    ]
+
+    for idx, (text, command) in enumerate(button_texts):
+        button = ctk.CTkButton(frame, text=text, command=command, **button_style)
+        button.place(relx=0.5, rely=(0.2 + idx * 0.1), anchor="center")
+
+    return frame
+
 def EditProfilePage(parent):
     window = tk.Toplevel(parent)
     window.title("Edit Profile")
@@ -269,13 +321,17 @@ def main():
         switch_frame(root, MainPage(root, show_login_page, show_signup_page))
 
     def show_login_page():
-        switch_frame(root, LoginPage(root, show_main_menu, show_main_page))
+        switch_frame(root, LoginPage(root, show_main_menu, show_shop_menu, show_main_page))
 
     def show_signup_page():
         switch_frame(root, SignUpPage(root, show_login_page))
 
     def show_main_menu():
         switch_frame(root, FarmerMainMenu(root, show_main_page))
+        create_buttons()
+
+    def show_shop_menu():
+        switch_frame(root, ShopMainMenu(root, show_main_page))
         create_buttons()
 
     def create_buttons():
