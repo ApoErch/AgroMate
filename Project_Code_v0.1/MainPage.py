@@ -35,7 +35,7 @@ def switch_frame(parent, new_frame):
     parent.current_frame = new_frame
     parent.current_frame.pack(expand=True, fill="both")
 
-def LoginPage(parent, show_main_menu, show_non_farmer_menu, show_main_page):
+def LoginPage(parent, show_main_menu, show_shop_menu, show_main_page):
     frame = tk.Frame(parent, bg="#2E2E2E")
     
     ttk.Label(frame, text="Email:", background="#2E2E2E", foreground="#00FF00").pack(pady=(50, 0))
@@ -55,7 +55,7 @@ def LoginPage(parent, show_main_menu, show_non_farmer_menu, show_main_page):
             if user_type == 'farmer':
                 show_main_menu()
             else:
-                show_non_farmer_menu()
+                show_shop_menu()
         else:
             messagebox.showerror("Error", "Invalid credentials.")
 
@@ -199,7 +199,7 @@ def FarmerMainMenu(parent, show_main_page):
 
     return frame
 
-def NonFarmerMainMenu(parent, show_main_page):
+def ShopMainMenu(parent, show_main_page):
     frame = tk.Frame(parent, bg="#2E2E2E")
     button_style = {
         "fg_color": "#2E2E2E",
@@ -213,27 +213,35 @@ def NonFarmerMainMenu(parent, show_main_page):
     }
 
     # Define functions for non-farmer menu options
-    def view_products():
+    def pending_orders():
         pass  # Replace with actual function
 
-    def view_orders():
+    def assign_agronomist():
         pass  # Replace with actual function
 
-    def contact_support():
+    def products():
         pass  # Replace with actual function
 
-    def view_events():
+    def service_control():
         pass  # Replace with actual function
 
-    def request_information():
+    def information():
+        pass  # Replace with actual function
+
+    def calendar():
+        pass  # Replace with actual function
+
+    def expirements():
         pass  # Replace with actual function
 
     button_texts = [
-        ("View Products", view_products),
-        ("My Orders", view_orders),
-        ("Contact Support", contact_support),
-        ("View Events", view_events),
-        ("Request Information", request_information)
+        ("Pending Orders", pending_orders),
+        ("Assign Agronomist", assign_agronomist),
+        ("Products", products),
+        ("Service Control", service_control),
+        ("Information", information),
+        ("Calendar", calendar),
+        ("Expirements", expirements)
     ]
 
     for idx, (text, command) in enumerate(button_texts):
@@ -313,7 +321,7 @@ def main():
         switch_frame(root, MainPage(root, show_login_page, show_signup_page))
 
     def show_login_page():
-        switch_frame(root, LoginPage(root, show_main_menu, show_non_farmer_menu, show_main_page))
+        switch_frame(root, LoginPage(root, show_main_menu, show_shop_menu, show_main_page))
 
     def show_signup_page():
         switch_frame(root, SignUpPage(root, show_login_page))
@@ -322,17 +330,17 @@ def main():
         switch_frame(root, FarmerMainMenu(root, show_main_page))
         create_buttons()
 
-    def show_non_farmer_menu():
-        switch_frame(root, NonFarmerMainMenu(root, show_main_page))
+    def show_shop_menu():
+        switch_frame(root, ShopMainMenu(root, show_main_page))
         create_buttons()
 
     def create_buttons():
-        logout_icon = ImageTk.PhotoImage(Image.open("PNGs/logout_icon.png").resize((30, 30)))
+        logout_icon = ImageTk.PhotoImage(Image.open("Project_Code_v0.1/PNGs/logout_icon.png").resize((30, 30)))
         root.logout_button = tk.Button(root, image=logout_icon, command=logout, bg="#2E2E2E", borderwidth=0, activebackground='#2E2E2E')
         root.logout_button.image = logout_icon
         root.logout_button.place(x=10, y=10)
 
-        settings_icon = ImageTk.PhotoImage(Image.open("PNGs/settings_icon.png").resize((30, 30)))
+        settings_icon = ImageTk.PhotoImage(Image.open("Project_Code_v0.1/PNGs/settings_icon.png").resize((30, 30)))
         root.settings_button = tk.Button(root, image=settings_icon, command=open_settings, bg="#2E2E2E", borderwidth=0, activebackground='#2E2E2E')
         root.settings_button.image = settings_icon
         root.settings_button.place(x=260, y=10)
