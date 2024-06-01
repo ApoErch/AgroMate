@@ -346,9 +346,3 @@ class Agro_Request_Start(tk.Toplevel):
 
         for request in requests:
             tree.insert("", tk.END, values=(request["agronomist"], request["shop"], request["date"], request["time"], request["description"]))
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()
-    app = Agro_Request_Start(root)
-    root.mainloop()
