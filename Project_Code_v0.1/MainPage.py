@@ -7,6 +7,7 @@ from Events_Class import Events
 from Cultivation import CultivationPage
 from New_Order import ProductOrderApp
 from aggelia import SellProductsApp
+from Request import Agro_Request_Start
 
 
 
@@ -181,6 +182,9 @@ def FarmerMainMenu(parent, show_main_page):
         
     def create_ad():
         SellProductsApp(parent)
+
+    def agro_request():
+        Agro_Request_Start(parent)
         
 
     button_texts = [
@@ -188,7 +192,7 @@ def FarmerMainMenu(parent, show_main_page):
         ("Cultivation", cultivation),
         ("Fertilization", lambda: None),
         ("Events", events),
-        ("Request for an Agronomist", lambda: None),
+        ("Request for an Agronomist", agro_request),
         ("Product Evaluation", lambda: None),
         ("Sell Products", create_ad)
     ]
