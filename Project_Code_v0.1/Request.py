@@ -11,6 +11,16 @@ class Agro_Request_Start(tk.Toplevel):
         self.geometry("600x400")
         self.configure(bg="#2E2E2E")
         self.title("Agronomist Request")
+        
+        # Define agronomists list here to ensure it's available to all methods
+        self.agronomists = [
+            ("Cretan Cultivators", "Crete"), ("Macedonian Meadows", "Macedonia"), 
+            ("Cycladic Cultures", "Cyclades"), ("Peloponnesian Planters", "Peloponnese"),
+            ("Minoan Meadows", "Crete"), ("Thracian Tillers", "Thrace"), 
+            ("Argolic Agro", "Peloponnese"), ("Delphic Growers", "Macedonia"), 
+            ("Ionian Irrigators", "Cyclades"), ("Athenian Agrarians", "Thrace")
+        ]
+        
         self.agro_request_main_frame = tk.Frame(self, bg="#2E2E2E")
         self.agro_request_main_frame.pack(expand=True, fill=tk.BOTH)
         self.agro_request_main(self.agro_request_main_frame)
@@ -34,9 +44,9 @@ class Agro_Request_Start(tk.Toplevel):
         self.title_label.pack(pady=5, anchor='n')
 
         # Styling Treeview
-        style = ttk.Style()
-        style.configure("Custom.Treeview.Heading", background="#2E2E2E", foreground="#00FF00", font=('Arial', 10, 'bold'))
-        style.configure("Custom.Treeview", background="#2E2E2E", foreground="#00FF00", fieldbackground="#2E2E2E")
+        tree_style = ttk.Style()
+        tree_style.configure("Custom.Treeview.Heading", background="#2E2E2E", foreground="#00FF00", font=('Arial', 10, 'bold'))
+        tree_style.configure("Custom.Treeview", background="#2E2E2E", foreground="#00FF00", fieldbackground="#2E2E2E")
 
         # Treeview for Agronomists
         self.tree = ttk.Treeview(self.main_frame, columns=("Name", "Region"), show="headings", height=5, style="Custom.Treeview")
@@ -46,14 +56,10 @@ class Agro_Request_Start(tk.Toplevel):
         self.tree.column("Name", anchor='center')
         self.tree.column("Region", anchor='center')
 
+        # Bind the Treeview selection event
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+
         # Populate Treeview (example data)
-        self.agronomists = [
-            ("Cretan Cultivators", "Crete"), ("Macedonian Meadows", "Macedonia"), 
-            ("Cycladic Cultures", "Cyclades"), ("Peloponnesian Planters", "Peloponnese"),
-            ("Minoan Meadows", "Crete"), ("Thracian Tillers", "Thrace"), 
-            ("Argolic Agro", "Peloponnese"), ("Delphic Growers", "Macedonia"), 
-            ("Ionian Irrigators", "Cyclades"), ("Athenian Agrarians", "Thrace")
-        ]
         for agronomist in self.agronomists:
             self.tree.insert("", tk.END, values=agronomist)
 
@@ -67,7 +73,7 @@ class Agro_Request_Start(tk.Toplevel):
 
         # Button Search
         self.search_button = ctk.CTkButton(
-            self.main_frame, text="Search", command=self.search_agronomist,
+            self.main_frame, text="Search", command=self.search_shop,
             fg_color="#2E2E2E", border_width=2, border_color="#00FF00",
             text_color="#00FF00", corner_radius=8, width=40, height=30,
             hover_color="#FFFFFF"
@@ -77,7 +83,7 @@ class Agro_Request_Start(tk.Toplevel):
     def close_window(self):
         self.destroy()
 
-    def search_agronomist(self):
+    def search_shop(self):
         # Clear existing entries in the Treeview
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -90,7 +96,23 @@ class Agro_Request_Start(tk.Toplevel):
             if search_region.lower() in agronomist[1].lower():
                 self.tree.insert("", tk.END, values=agronomist)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = Agro_Request_Start(root)
-    app.mainloop()
+    def on_tree_select(self, event):
+        # Handle the selection change event
+        selected_item = self.tree.selection()[0]  # Assuming single selection
+        item = self.tree.item(selected_item)
+        messagebox.showinfo("Selection", f"You selected: {item['values']}")
+
+    def agro_list(self,parent_frame):
+        parent_frame.destroy()
+        self.agro_list_frame = tk.Frame(self, bg="#2E2E2E")
+        self.agro_list_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Back Button
+
+        # Label Agro List
+
+        # Treeview with agro list
+
+        # Filter Button
+
+        # Select Button
