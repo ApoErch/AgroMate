@@ -1,0 +1,249 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+import customtkinter as ctk
+import json
+from experiment_participation import ExperimentParticipationPage
+from product_review import ProductReviewApp
+
+# Path to the credentials file
+CREDENTIALS_FILE = "credentials.json"
+
+# Load credentials from file
+def load_credentials():
+    try:
+        with open(CREDENTIALS_FILE, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {}
+
+# Save credentials to file
+def save_credentials(credentials):
+    with open(CREDENTIALS_FILE, "w") as file:
+        json.dump(credentials, file, indent=4)
+
+# Dictionary to store user credentials and user types
+user_credentials = load_credentials()
+
+def switch_frame(parent, new_frame):
+    if parent.current_frame is not None:
+        parent.current_frame.destroy()
+    parent.current_frame = new_frame
+    parent.current_frame.pack(expand=True, fill="both")
+
+def LoginPage(parent, show_main_menu, show_main_page):
+    frame = tk.Frame(parent, bg="#2E2E2E")
+    
+    ttk.Label(frame, text="Email:", background="#2E2E2E", foreground="#00FF00").pack(pady=(50, 0))
+    email_entry = ttk.Entry(frame)
+    email_entry.pack(pady=10)
+
+    ttk.Label(frame, text="Password:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    password_entry = ttk.Entry(frame, show="*")
+    password_entry.pack(pady=10)
+
+    def authenticate():
+        email = email_entry.get()
+        password = password_entry.get()
+        if email in user_credentials and user_credentials[email]['password'] == password:
+            user_type = user_credentials[email]['type']
+            if user_type == 'farmer':
+                # Store current user email
+                parent.current_user_email = email  
+                show_main_menu()
+                return email  # Return email if authentication is successful
+            else:
+                messagebox.showinfo("Error", "You are not authorized to access this menu.")
+        else:
+            messagebox.showerror("Error", "Invalid credentials.")
+        return None  # Return None if authentication fails
+
+    def authenticate_and_get_email():
+        email = authenticate()
+        return email
+    
+    login_button = ctk.CTkButton(frame, text="Login", command=authenticate_and_get_email, fg_color="#2E2E2E", border_width=2,
+                                 border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                 hover_color="#FFFFFF")
+    login_button.pack(pady=(20, 10))
+
+    back_button = ctk.CTkButton(frame, text="Back", command=show_main_page, fg_color="#2E2E2E", border_width=2,
+                                border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                hover_color="#FFFFFF")
+    back_button.pack(pady=(10, 10))
+
+    return frame
+
+def SignUpPage(parent, show_login_page):
+    frame = tk.Frame(parent, bg="#2E2E2E")
+    
+    ttk.Label(frame, text="First Name:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    first_name_entry = ttk.Entry(frame)
+    first_name_entry.pack(pady=10)
+
+    ttk.Label(frame, text="Last Name:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    last_name_entry = ttk.Entry(frame)
+    last_name_entry.pack(pady=10)
+
+    ttk.Label(frame, text="Email:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    email_entry = ttk.Entry(frame)
+    email_entry.pack(pady=10)
+
+    ttk.Label(frame, text="Password:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    password_entry = ttk.Entry(frame, show="*")
+    password_entry.pack(pady=10)
+
+    ttk.Label(frame, text="Confirm Password:", background="#2E2E2E", foreground="#00FF00").pack(pady=(20, 0))
+    confirm_password_entry = ttk.Entry(frame, show="*")
+    confirm_password_entry.pack(pady=10)
+
+    farmer_var = tk.BooleanVar()
+    farmer_checkbox = tk.Checkbutton(frame, text="I am a farmer", variable=farmer_var, bg="#2E2E2E",
+                                     fg="#00FF00", selectcolor="#2E2E2E", activebackground="#2E2E2E",
+                                     activeforeground="#00FF00")
+    farmer_checkbox.pack(pady=(10, 20))
+
+    def register():
+        first_name = first_name_entry.get()
+        last_name = last_name_entry.get()
+        email = email_entry.get()
+        password = password_entry.get()
+        confirm_password = confirm_password_entry.get()
+        if password == confirm_password:
+            user_credentials[email] = {'first_name': first_name, 'last_name': last_name, 'password': password, 'type': 'farmer' if farmer_var.get() else 'other'}
+            save_credentials(user_credentials)
+            messagebox.showinfo("Success", "Registration successful!")
+            show_login_page()
+        else:
+            messagebox.showerror("Error", "Passwords do not match.")
+
+    signup_button = ctk.CTkButton(frame, text="Sign Up", command=register, fg_color="#2E2E2E", border_width=2,
+                                  border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                  hover_color="#FFFFFF")
+    signup_button.pack(pady=(10, 20))
+
+    back_button = ctk.CTkButton(frame, text="Back", command=show_login_page, fg_color="#2E2E2E", border_width=2,
+                                border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                hover_color="#FFFFFF")
+    back_button.pack(pady=(10, 10))
+
+    return frame
+
+def MainPage(parent, show_login, show_signup):
+    frame = tk.Frame(parent, bg="#2E2E2E")
+    
+    # Load and resize the image
+    logo = Image.open("PNGs/logo.png")  # Path to your image file
+    logo = logo.resize((210, 130), Image.LANCZOS)  # Adjust the size as needed
+    logo_img = ImageTk.PhotoImage(logo)
+
+    # Create a label to display the image
+    logo_label = tk.Label(frame, image=logo_img, bg="#2E2E2E")
+    logo_label.image = logo_img  # Keep a reference to avoid garbage collection
+    logo_label.pack(pady=(20, 10))  # Adjust padding as needed
+
+    login_button = ctk.CTkButton(frame, text="Login", command=show_login, fg_color="#2E2E2E", border_width=2,
+                                 border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                 hover_color="#FFFFFF")
+    login_button.pack(pady=(20, 10))
+
+    signup_button = ctk.CTkButton(frame, text="Sign Up", command=show_signup, fg_color="#2E2E2E", border_width=2,
+                                  border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                  hover_color="#FFFFFF")
+    signup_button.pack(pady=(20, 10))
+
+    return frame
+
+def FarmerMainMenu(parent, show_main_page):
+    frame = tk.Frame(parent, bg="#2E2E2E")
+    button_style = {
+        "fg_color": "#2E2E2E",
+        "border_width": 2,
+        "border_color": "#00FF00",
+        "text_color": "#00FF00",
+        "corner_radius": 8,
+        "width": 200,
+        "height": 40,
+        "hover_color": "#FFFFFF",
+    }
+
+    def experiment_participation():
+        switch_frame(parent, ExperimentParticipationPage(parent))
+        
+    def product_review():
+        switch_frame(parent,ProductReviewApp(parent))
+
+    button_texts = [
+        ("Place an Order", lambda: None),
+        ("Cultivation", lambda: None),
+        ("Fertilization", lambda: None),
+        ("Events", lambda: None),
+        ("Request for an Agronomist", lambda: None),
+        ("Product Evaluation", product_review),
+        ("Experiment Participation", experiment_participation)
+    ]
+
+    for idx, (text, command) in enumerate(button_texts):
+        button = ctk.CTkButton(frame, text=text, command=command, **button_style)
+        button.pack(pady=(10, 10))
+
+    return frame
+
+def EditProfilePage(parent):
+    window = tk.Toplevel(parent)
+    window.title("Edit Profile")
+    window.geometry("300x300")
+    window.configure(bg="#2E2E2E")
+
+    first_name_entry = ttk.Entry(window)
+    last_name_entry = ttk.Entry(window)
+    email_entry = ttk.Entry(window)
+    password_entry = ttk.Entry(window, show="*")
+
+    def save_profile():
+        first_name = first_name_entry.get()
+        last_name = last_name_entry.get()
+        email = email_entry.get()
+        password = password_entry.get()
+        # Add saving logic
+
+    save_button = ctk.CTkButton(window, text="Save", command=save_profile, fg_color="#2E2E2E", border_width=2,
+                                border_color="#00FF00", text_color="#00FF00", corner_radius=8, width=200, height=40,
+                                hover_color="#FFFFFF")
+    save_button.pack(pady=(20, 10))
+
+    window.mainloop()
+
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("Farmers' App")
+        self.geometry("800x600")
+        self.configure(bg="#2E2E2E")
+
+        self.current_frame = None
+        self.current_user_email = None
+
+        self.frames = {
+            "MainPage": MainPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page)), lambda: switch_frame(self, SignUpPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page))))),
+            "LoginPage": LoginPage(self, self.show_main_menu, lambda: switch_frame(self, MainPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page)), lambda: switch_frame(self, SignUpPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page))))))),
+            "SignUpPage": SignUpPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, lambda: switch_frame(self, MainPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page)), lambda: switch_frame(self, SignUpPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page))))))))),
+            "FarmerMainMenu": FarmerMainMenu(self, lambda: switch_frame(self, MainPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page)), lambda: switch_frame(self, SignUpPage(self, lambda: switch_frame(self, LoginPage(self, self.show_main_menu, self.show_main_page)))))))
+        }
+
+        self.show_frame("MainPage")
+
+    def show_frame(self, frame_name):
+        frame = self.frames[frame_name]
+        switch_frame(self, frame)
+
+    def show_main_page(self):
+        self.show_frame("MainPage")
+
+    def show_main_menu(self):
+        self.show_frame("FarmerMainMenu")
+
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
