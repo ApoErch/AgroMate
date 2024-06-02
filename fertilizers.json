@@ -1,0 +1,5 @@
+[
+    {"Fertilizer": "Nitrogen", "Stock": "50", "Max Quantity": "100"},
+    {"Fertilizer": "Phosphorus", "Stock": "30", "Max Quantity": "80"},
+    {"Fertilizer": "Potassium", "Stock": "20", "Max Quantity": "50"}
+]
