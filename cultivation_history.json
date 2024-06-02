@@ -1,9 +1,0 @@
-{
-    "Field B - 10 acres 6/2/24": {
-        "Field": "Field B - 10 acres",
-        "Crop": "Corn",
-        "Date": "6/2/24",
-        "Required Crops": 150,
-        "Required Plant Medicines": 15.0
-    }
-}
