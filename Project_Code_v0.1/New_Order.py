@@ -3,6 +3,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import json
+import random
 
 class ProductOrderApp(tk.Toplevel):
     def __init__(self, parent):
@@ -20,9 +21,12 @@ class ProductOrderApp(tk.Toplevel):
         self.product_page = tk.Frame(self, bg="#2E2E2E")
         self.cart_page = tk.Frame(self, bg="#2E2E2E")
         self.order_history_page = tk.Frame(self, bg="#2E2E2E")
+        self.delivery_collect_page = tk.Frame(self, bg="#2E2E2E")
+        self.delivery_time_page = tk.Frame(self, bg="#2E2E2E")
+        self.confirmation_page = tk.Frame(self, bg="#2E2E2E")
 
         # Frame to hold the top bar with cart button
-        self.top_frame = tk.Frame(self.product_page, height=1000, bg="#2E2E2E")
+        self.top_frame = tk.Frame(self.product_page, height=50, bg="#2E2E2E")
         self.top_frame.pack(side=tk.TOP, fill=tk.X)
 
         # Frame to hold category buttons (sidebar)
@@ -57,7 +61,7 @@ class ProductOrderApp(tk.Toplevel):
 
         # Frame to hold product details
         self.details_frame = tk.Frame(self.main_frame, bg="#2E2E2E")
-        self.details_frame.pack(padx=20,pady=0)
+        self.details_frame.pack(padx=20, pady=10)
 
         # Dictionary to store product images, labels, descriptions, and price widgets
         self.products = {}
@@ -71,19 +75,16 @@ class ProductOrderApp(tk.Toplevel):
 
         # Create cart button in the top frame
         self.cart_button = ctk.CTkButton(self.top_frame, text="View Cart", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
-                                     image=self.cart_icon_photo, compound="left", command=self.show_cart_page)
+                                         image=self.cart_icon_photo, compound="left", command=self.show_cart_page)
         self.cart_button.pack(pady=10, padx=10, side=tk.RIGHT)
 
         # Create order history button in the top frame
         self.order_history_button = ctk.CTkButton(self.top_frame, text="Order History", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8, 
-                                              command=self.show_order_history)
+                                                  command=self.show_order_history)
         self.order_history_button.pack(pady=10, padx=10, side=tk.RIGHT)
 
         # Create category buttons in the sidebar
         self.create_category_buttons()
-
-        # Button to confirm order
-        
 
         # Label to show temporary messages
         self.message_label = tk.Label(self.top_frame, bg="#2E2E2E", fg="#00FF00", font=("Arial", 10, "bold"))
@@ -98,7 +99,7 @@ class ProductOrderApp(tk.Toplevel):
     def create_category_buttons(self):
         for category in self.product_data.keys():
             button = ctk.CTkButton(self.sidebar_frame, text=category, fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
-                               command=lambda c=category: self.load_products(c))
+                                   command=lambda c=category: self.load_products(c))
             button.pack(pady=5, fill=tk.X)
 
     def load_products(self, category):
@@ -173,135 +174,182 @@ class ProductOrderApp(tk.Toplevel):
 
         # Add to Cart button with image
         add_to_cart_button = ctk.CTkButton(self.details_frame, text="Add to Cart", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8, image=self.cart_icon_photo, compound="left",
-                                       command=lambda: self.add_to_cart(product_name, quantity_var))
+                                           command=lambda: self.add_to_cart(product_name, quantity_var))
         add_to_cart_button.pack(pady=10)
-       
+
     def add_to_cart(self, product_name, quantity_var):
         quantity = quantity_var.get()
         stock = self.products[product_name]["stock"]
-        if quantity > stock:
-            messagebox.showerror("Error", f"Insufficient stock for {product_name}. Only {stock} items available.")
-        else:
-            # Deduct the quantity from the stock
+
+        if stock >= quantity:
+            self.selected_products.append((product_name, quantity))
             self.products[product_name]["stock"] -= quantity
-
-            # Update the selected_products list
-            existing_product = next((item for item in self.selected_products if item["name"] == product_name), None)
-            if existing_product:
-                existing_product["quantity"] += quantity
-            else:
-                self.selected_products.append({"name": product_name, "quantity": quantity, "price": self.products[product_name]["price"]})
-
-            # Update the display stock
-            self.update_product_display(product_name)
-
-            # Show temporary message
-            self.show_temp_message(f"Added {quantity} of {product_name} to cart")
-             
-
-
-    def update_product_display(self, product_name):
-        stock = self.products[product_name]["stock"]
-        self.products[product_name]["stock_label"].config(text=f"Stock: {stock}")
-
-    def show_temp_message(self, message):
-        self.message_label.config(text=message)
-        self.parent.after(2000, lambda: self.message_label.config(text=""))
+            self.products[product_name]["stock_label"].config(text=f"Stock: {self.products[product_name]['stock']}")
+            self.show_message(f"Added {quantity} {product_name}(s) to cart")
+        else:
+            self.show_message("Insufficient stock available")
 
     def show_cart_page(self):
-        self.product_page.pack_forget()  # Hide product page
-        self.cart_page.pack(fill=tk.BOTH, expand=True)  # Show cart page
-        self.update_cart_page()
+        self.product_page.pack_forget()
+        self.delivery_collect_page.pack_forget()
+        self.cart_page.pack(fill=tk.BOTH, expand=True)
 
-    def show_product_page(self):
-        self.cart_page.pack_forget()  # Hide cart page
-        self.product_page.pack(fill=tk.BOTH, expand=True)  # Show product page
-
-    def show_order_history(self):
-        self.order_history_window = tk.Toplevel(self.parent)
-        self.order_history_window.title("Order History")
-        self.order_history_window.geometry("400x400")
-
-        self.setup_order_history_page()
-
-    def setup_cart_page(self):
-        # Top frame for cart page
-        cart_top_frame = tk.Frame(self.cart_page, height=1000, bg="#2E2E2E")
-        cart_top_frame.pack(side=tk.TOP, fill=tk.X)
-
-        # Button to go back to the product page
-        back_button = ctk.CTkButton(cart_top_frame, text="Back to Products", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
-                                command=self.show_product_page)
-        back_button.pack(pady=10, padx=10, side=tk.LEFT)
-
-        # Main frame for cart items
-        self.cart_items_frame = tk.Frame(self.cart_page, bg="#2E2E2E")
-        self.cart_items_frame.pack(fill=tk.BOTH, expand=True)
-
-    def update_cart_page(self):
-        # Clear the previous cart items
-        for widget in self.cart_items_frame.winfo_children():
+        for widget in self.cart_page.winfo_children():
             widget.destroy()
 
+        title_label = tk.Label(self.cart_page, text="Cart", font=("Arial", 16, "bold"), bg="#2E2E2E", fg="#00FF00")
+        title_label.pack(pady=10)
+
         if not self.selected_products:
-            empty_label = tk.Label(self.cart_items_frame, bg="#2E2E2E", fg="#00FF00", text="Your cart is empty.")
+            empty_label = tk.Label(self.cart_page, text="Your cart is empty", bg="#2E2E2E", fg="#00FF00")
             empty_label.pack(pady=20)
-            return
 
         total_price = 0
 
-        for product in self.selected_products:
-            item_frame = tk.Frame(self.cart_items_frame, bg="#2E2E2E")
-            item_frame.pack(fill=tk.X, pady=5)
+        for product_name, quantity in self.selected_products:
+            product = self.products[product_name]
+            cart_item_label = tk.Label(self.cart_page, text=f"{product_name} - Quantity: {quantity} - ${product['price'] * quantity:.2f}",
+                                   bg="#2E2E2E", fg="#00FF00")
+            cart_item_label.pack(pady=5)
+            total_price += product['price'] * quantity
 
-            name_label = tk.Label(item_frame, bg="#2E2E2E", fg="#00FF00", text=f"{product['name']} (x{product['quantity']})", font=("Arial", 12))
-            name_label.pack(side=tk.LEFT, padx=10)
-
-            price_label = tk.Label(item_frame, bg="#2E2E2E", fg="#00FF00", text=f"${product['price'] * product['quantity']:.2f}", font=("Arial", 12))
-            price_label.pack(side=tk.RIGHT, padx=10)
-
-            total_price += product['price'] * product['quantity']
-
-        total_label = tk.Label(self.cart_items_frame, bg="#2E2E2E", fg="#00FF00", text=f"Total: ${total_price:.2f}", font=("Arial", 14, "bold"))
+        total_label = tk.Label(self.cart_page, text=f"Total: ${total_price:.2f}", font=("Arial", 14, "bold"), bg="#2E2E2E", fg="#00FF00")
         total_label.pack(pady=10)
 
-        # Confirm Order button
-        confirm_button = ctk.CTkButton(self.cart_items_frame, text="Confirm Order", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
-                                   command=self.confirm_order)
-        confirm_button.pack(pady=10)
-         # cancel Order button
-        cancel_button = ctk.CTkButton(self.cart_items_frame, text="cancel Order", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
-                                   command=self.cancel_order)
-        cancel_button.pack(pady=10)
+        checkout_button = ctk.CTkButton(self.cart_page, text="Checkout", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                    command=self.show_delivery_collect_page)
+        checkout_button.pack(pady=20)
+
+        # Always display Back to Products button
+        back_button = ctk.CTkButton(self.cart_page, text="Back to Products", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                command=self.show_product_page)
+        back_button.pack(pady=10)
+
+    def show_order_history(self):
+        self.product_page.pack_forget()
+        self.cart_page.pack_forget()
+        self.order_history_page.pack(fill=tk.BOTH, expand=True)
+
+        for widget in self.order_history_page.winfo_children():
+            widget.destroy()
+
+        title_label = tk.Label(self.order_history_page, text="Order History", font=("Arial", 16, "bold"), bg="#2E2E2E", fg="#00FF00")
+        title_label.pack(pady=10)
+
+        if not self.order_history:
+            empty_label = tk.Label(self.order_history_page, text="You have no order history", bg="#2E2E2E", fg="#00FF00")
+            empty_label.pack(pady=20)
+        else:
+            for order in self.order_history:
+                order_label = tk.Label(self.order_history_page, text=f"Order ID: {order['order_id']} - Total: ${order['total_price']:.2f}",
+                                       bg="#2E2E2E", fg="#00FF00")
+                order_label.pack(pady=5)
+
+        back_button = ctk.CTkButton(self.order_history_page, text="Back to Products", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                    command=self.show_product_page)
+        back_button.pack(pady=10)
+
+    def show_delivery_collect_page(self):
+        self.cart_page.pack_forget()
+        self.delivery_collect_page.pack(fill=tk.BOTH, expand=True)
+
+        for widget in self.delivery_collect_page.winfo_children():
+            widget.destroy()
+
+        delivery_collect_label = tk.Label(self.delivery_collect_page, text="Delivery or Collection", font=("Arial", 16, "bold"), bg="#2E2E2E", fg="#00FF00")
+        delivery_collect_label.pack(pady=10)
+
+        delivery_button = ctk.CTkButton(self.delivery_collect_page, text="Delivery", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                        command=self.show_delivery_time_page)
+        delivery_button.pack(pady=10)
+
+        collection_button = ctk.CTkButton(self.delivery_collect_page, text="Collection", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                          command=lambda: self.show_confirmation_page("Collection"))
+        collection_button.pack(pady=10)
+
+        back_button = ctk.CTkButton(self.delivery_collect_page, text="Back to Cart", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                    command=self.show_cart_page)
+        back_button.pack(pady=10)
+
+    def show_delivery_time_page(self):
+        self.delivery_collect_page.pack_forget()
+        self.delivery_time_page.pack(fill=tk.BOTH, expand=True)
+
+        for widget in self.delivery_time_page.winfo_children():
+            widget.destroy()
+
+        delivery_time_label = tk.Label(self.delivery_time_page, text="Select Delivery Time", font=("Arial", 16, "bold"), bg="#2E2E2E", fg="#00FF00")
+        delivery_time_label.pack(pady=10)
+
+        time_slots = ["9 AM - 12 PM", "12 PM - 3 PM", "3 PM - 6 PM", "6 PM - 9 PM"]
+        self.selected_time = tk.StringVar(value=time_slots[0])
+
+        for slot in time_slots:
+            radio_button = tk.Radiobutton(self.delivery_time_page, text=slot, variable=self.selected_time, value=slot, bg="#2E2E2E", fg="#00FF00", selectcolor="#00FF00")
+            radio_button.pack(pady=5)
+
+        confirm_button = ctk.CTkButton(self.delivery_time_page, text="Confirm Delivery Time", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                       command=lambda: self.show_confirmation_page("Delivery"))
+        confirm_button.pack(pady=20)
+
+        back_button = ctk.CTkButton(self.delivery_time_page, text="Back to Delivery Options", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                    command=self.show_delivery_collect_page)
+        back_button.pack(pady=10)
+
+    def show_confirmation_page(self, delivery_method):
+        self.delivery_time_page.pack_forget()
+        self.confirmation_page.pack(fill=tk.BOTH, expand=True)
+
+        for widget in self.confirmation_page.winfo_children():
+            widget.destroy()
+
+        confirmation_label = tk.Label(self.confirmation_page, text="Order Confirmation", font=("Arial", 16, "bold"), bg="#2E2E2E", fg="#00FF00")
+        confirmation_label.pack(pady=10)
+
+        if delivery_method == "Delivery":
+            delivery_time = self.selected_time.get()
+            delivery_label = tk.Label(self.confirmation_page, text=f"Delivery Time: {delivery_time}", bg="#2E2E2E", fg="#00FF00")
+            delivery_label.pack(pady=5)
+
+        order_id = random.randint(1000, 9999)
+        total_price = sum(self.products[product_name]["price"] * quantity for product_name, quantity in self.selected_products)
+        self.order_history.append({"order_id": order_id, "total_price": total_price})
+
+        order_id_label = tk.Label(self.confirmation_page, text=f"Order ID: {order_id}", bg="#2E2E2E", fg="#00FF00")
+        order_id_label.pack(pady=5)
+
+        total_label = tk.Label(self.confirmation_page, text=f"Total Price: ${total_price:.2f}", bg="#2E2E2E", fg="#00FF00")
+        total_label.pack(pady=5)
+
+        confirm_button = ctk.CTkButton(self.confirmation_page, text="Confirm Order", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                       command=self.confirm_order)
+        confirm_button.pack(pady=20)
+
+        back_button = ctk.CTkButton(self.confirmation_page, text="Back to Products", fg_color="#00FF00", text_color="#2E2E2E", corner_radius=8,
+                                    command=self.show_product_page)
+        back_button.pack(pady=10)
 
     def confirm_order(self):
-        # Save order to order history
-        if self.selected_products:
-            self.order_history.append(self.selected_products.copy())
-            self.selected_products.clear()
-            messagebox.showinfo("Order Confirmed", "Your order has been confirmed!")
-            self.show_product_page()
-            self.update_cart_page()
-
-    def cancel_order(self):
-        messagebox.showinfo("Cancel", "Order canceled")
+        self.selected_products.clear()
         self.show_product_page()
+        self.show_message("Order confirmed successfully!")
 
-    def setup_order_history_page(self):
-        if not self.order_history:
-            empty_label = tk.Label(self.order_history_window, bg="#2E2E2E", fg="#00FF00", text="No order history available.")
-            empty_label.pack(pady=20)
-            return
+    def show_message(self, message):
+        self.message_label.config(text=message)
+        self.after(3000, lambda: self.message_label.config(text=""))
 
-        for order in self.order_history:
-            order_frame = tk.Frame(self.order_history_window, bg="#2E2E2E")
-            order_frame.pack(fill=tk.X, pady=10, padx=10, anchor="w")
+    def show_product_page(self):
+        self.cart_page.pack_forget()
+        self.delivery_collect_page.pack_forget()
+        self.delivery_time_page.pack_forget()
+        self.confirmation_page.pack_forget()
+        self.order_history_page.pack_forget()
+        self.product_page.pack(fill=tk.BOTH, expand=True)
 
-            for product in order:
-                product_label = tk.Label(order_frame, bg="#2E2E2E", fg="#00FF00", text=f"{product['name']} (x{product['quantity']}) - ${product['price'] * product['quantity']:.2f}")
-                product_label.pack(anchor="w")
+    def setup_cart_page(self):
+        self.cart_page.configure(bg="#2E2E2E")
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = ProductOrderApp(root)
-    root.mainloop()
+    app.mainloop()

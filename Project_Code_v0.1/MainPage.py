@@ -7,6 +7,11 @@ from Events_Class import Events
 from Cultivation import CultivationPage
 from New_Order import ProductOrderApp
 from aggelia import SellProductsApp
+from experiment_participation import ExperimentParticipationPage
+from product_review import ProductReviewApp
+from experiments import ExperimentApp
+from Request import Agro_Request_Start
+from Fertilization import Fertilization
 
 
 
@@ -182,15 +187,30 @@ def FarmerMainMenu(parent, show_main_page):
     def create_ad():
         SellProductsApp(parent)
         
+    def experiment_participation():
+        switch_frame(parent, ExperimentParticipationPage(parent))
+        
+    def product_review():
+        switch_frame(parent,ProductReviewApp(parent))
+
+    def agro_request():
+        Agro_Request_Start(parent)
+
+    def fertilization():
+        Fertilization(parent)
+
+    
+        
 
     button_texts = [
         ("Place an Order", PlaceOrder),
         ("Cultivation", cultivation),
-        ("Fertilization", lambda: None),
+        ("Fertilization", fertilization),
         ("Events", events),
-        ("Request for an Agronomist", lambda: None),
-        ("Product Evaluation", lambda: None),
-        ("Sell Products", create_ad)
+        ("Request for an Agronomist", agro_request),
+        ("Product Evaluation", product_review),
+        ("Sell Products", create_ad),
+        ("Experiment Participation", experiment_participation)
     ]
 
     for idx, (text, command) in enumerate(button_texts):
@@ -231,8 +251,8 @@ def ShopMainMenu(parent, show_main_page):
     def calendar():
         pass  # Replace with actual function
 
-    def expirements():
-        pass  # Replace with actual function
+    def experiments():
+        switch_frame(parent, ExperimentApp(parent))
 
     button_texts = [
         ("Pending Orders", pending_orders),
@@ -241,7 +261,7 @@ def ShopMainMenu(parent, show_main_page):
         ("Service Control", service_control),
         ("Information", information),
         ("Calendar", calendar),
-        ("Expirements", expirements)
+        ("Expirements", experiments)
     ]
 
     for idx, (text, command) in enumerate(button_texts):
