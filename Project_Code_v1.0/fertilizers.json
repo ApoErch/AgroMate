@@ -1,0 +1,17 @@
+[
+    {
+        "Fertilizer": "Nitrogen",
+        "Stock": "70",
+        "Max Quantity": "100"
+    },
+    {
+        "Fertilizer": "Phosphorus",
+        "Stock": "80",
+        "Max Quantity": "80"
+    },
+    {
+        "Fertilizer": "Potassium",
+        "Stock": "50",
+        "Max Quantity": "50"
+    }
+]
