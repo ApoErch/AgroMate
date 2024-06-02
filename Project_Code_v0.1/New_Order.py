@@ -14,7 +14,7 @@ class ProductOrderApp(tk.Toplevel):
         self.parent.title("Product Order")
 
         # Load product data from JSON file
-        with open("D:/jojo8/vscode/agromate1/products.json", "r") as file:
+        with open("Project_Code_v0.1/products.json", "r") as file:
             self.product_data = json.load(file)
 
         # Create the main frames for the product, cart, and order history pages
@@ -69,7 +69,7 @@ class ProductOrderApp(tk.Toplevel):
         self.order_history = []
 
         # Load cart icon image
-        self.cart_icon = Image.open("D:/jojo8/vscode/agromate1/png/cart.png")
+        self.cart_icon = Image.open("Project_Code_v0.1/PNGs/cart.png")
         self.cart_icon = self.cart_icon.resize((20, 20))
         self.cart_icon_photo = ImageTk.PhotoImage(self.cart_icon)
 

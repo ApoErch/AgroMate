@@ -133,7 +133,7 @@ class Fertilization(tk.Toplevel):
 
     def load_all_fertilizers(self):
         try:
-            with open("fertilizers.json", "r") as file:
+            with open("Project_Code_v0.1/fertilizers.json", "r") as file:
                 self.fert_data = json.load(file)
                 self.fert_tree.delete(*self.fert_tree.get_children())  # Clear existing rows
                 for fert in self.fert_data:
@@ -161,7 +161,7 @@ class Fertilization(tk.Toplevel):
         selected_fertilizer_name = selected_fertilizers[0][0]
 
         try:
-            with open("fertilization_history.json", "r") as file:
+            with open("Project_Code_v0.1/fertilization_history.json", "r") as file:
                 history_data = json.load(file)
                 matched_entries = [
                     entry for entry in history_data if entry["Field Name"] == selected_field_name and entry["Fertilizer Name"] == selected_fertilizer_name
