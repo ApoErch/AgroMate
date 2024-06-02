@@ -8,5 +8,15 @@
         "Duration": "30",
         "Fertilizer Weight": "33",
         "Weight/Water Ratio": "11"
+    },
+    {
+        "Field Name": "Field J - 50 acres",
+        "Crop Name": "Barley",
+        "Fertilizer Name": "Phosphorus",
+        "Date": "2024-06-02",
+        "Time": "19:00",
+        "Duration": "30",
+        "Fertilizer Weight": "33",
+        "Weight/Water Ratio": "11"
     }
 ]

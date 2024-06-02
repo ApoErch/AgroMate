@@ -105,7 +105,7 @@ class Fertilization(tk.Toplevel):
 
         # Next button
         self.next_button = ctk.CTkButton(
-            self.button_frame_bottom, text="Next", command=self.check_fertilization_history,
+            self.button_frame_bottom, text="Next", command=self.handle_next_button,
             fg_color="#2E2E2E", border_width=2, border_color="#00FF00",
             text_color="#00FF00", corner_radius=8, width=40, height=30,
             hover_color="#FFFFFF"
@@ -147,33 +147,40 @@ class Fertilization(tk.Toplevel):
         except json.JSONDecodeError:
             messagebox.showerror("Error", "Error decoding the fertilizers file.")
 
-    def check_fertilization_history(self):
+    def handle_next_button(self):
         selected_fields = [self.tree.item(item, "values") for item in self.tree.selection()]
         selected_fertilizers = [self.fert_tree.item(item, "values") for item in self.fert_tree.selection()]
 
+        # Ensure selections are made
         if not selected_fields or not selected_fertilizers:
-            messagebox.showerror("Error", "Please select a field and a fertilizer.")
+            messagebox.showerror("Error", "Please select both a field and a fertilizer.")
             return
 
-        selected_field = selected_fields[0][0]
-        selected_fertilizer = selected_fertilizers[0][0]
+        # Check if the combination exists in fertilization_history.json
+        selected_field_name = selected_fields[0][0]
+        selected_fertilizer_name = selected_fertilizers[0][0]
 
-        # Check if there's a matching entry in fertilization_history.json
         try:
-            with open("fertilization_history.json", "r") as history_file:
-                history_data = json.load(history_file)
+            with open("fertilization_history.json", "r") as file:
+                history_data = json.load(file)
                 matched_entries = [
-                    entry for entry in history_data
-                    if entry["Field Name"] == selected_field and entry["Fertilizer Name"] == selected_fertilizer
+                    entry for entry in history_data if entry["Field Name"] == selected_field_name and entry["Fertilizer Name"] == selected_fertilizer_name
                 ]
-                if matched_entries:
-                    self.show_form_page(matched_entries)
-                else:
-                    self.proceed_to_form(selected_fields, selected_fertilizers)
         except FileNotFoundError:
-            self.proceed_to_form(selected_fields, selected_fertilizers)
+            matched_entries = []
         except json.JSONDecodeError:
             messagebox.showerror("Error", "Error decoding the fertilization history file.")
+            return
+
+        # Save the combined data to a single JSON file
+        combined_data = {
+            "selected_fields": selected_fields,
+            "selected_fertilizers": selected_fertilizers
+        }
+        with open("backup_data.json", "w") as file:
+            json.dump(combined_data, file, indent=4)
+
+        self.show_form_page(matched_entries)
 
     def show_form_page(self, matched_entries):
         self.fert_frame.destroy()
@@ -198,25 +205,27 @@ class Fertilization(tk.Toplevel):
         self.field_title.pack(pady=(10, 5), anchor='n')
 
         # Treeview Fertilization History of this Field with this Fertilizer
-        fert_history_columns = ("Field", "Crop", "Date", "Time", "Duration", "Fertilizer Weight", "Weight/Water Ratio")
+        fert_history_columns = ("Field", "Crop", "Date", "Time", "Fertilizer", "Duration", "Fertilizer Weight", "Weight/Water Ratio")
         self.fert_history_tree = ttk.Treeview(self.form_frame, columns=fert_history_columns, height=3, show='headings', style="Custom.Treeview")
         self.fert_history_tree.pack(pady=20, padx=10, expand=True, fill=tk.BOTH)
         for col in fert_history_columns:
             self.fert_history_tree.heading(col, text=col)
             self.fert_history_tree.column(col, anchor='center', width=100)
 
-        for entry in matched_entries:
-            self.fert_history_tree.insert("", "end", values=(
-                entry["Field Name"],
-                entry["Crop Name"],
-                entry["Date"],
-                entry["Time"],
-                entry["Duration"],
-                entry["Fertilizer Weight"],
-                entry["Weight/Water Ratio"]
-            ))
+        if matched_entries:
+            for entry in matched_entries:
+                self.fert_history_tree.insert("", "end", values=(
+                    entry["Field Name"],
+                    entry["Crop Name"],
+                    entry["Date"],
+                    entry["Time"],
+                    entry["Fertilizer Name"],
+                    entry["Duration"],
+                    entry["Fertilizer Weight"],
+                    entry["Weight/Water Ratio"]
+                ))
 
-        # Bind the selection event to the fertilization history treeview
+        # Bind the selection event
         self.fert_history_tree.bind("<<TreeviewSelect>>", self.on_click)
 
         # Create a frame to hold the date and time labels and entries
@@ -271,7 +280,7 @@ class Fertilization(tk.Toplevel):
             text_color="#00FF00", corner_radius=8, width=120, height=30,
             hover_color="#FFFFFF"
         )
-        self.check_form_button.grid(row=5, column=0, columnspan=2, pady=(10, 0))
+        self.check_form_button.grid(row=5, column=0, pady=(10, 0), sticky="e")
 
         # Submit Form Button
         self.submit_button = ctk.CTkButton(
@@ -280,19 +289,9 @@ class Fertilization(tk.Toplevel):
             text_color="#00FF00", corner_radius=8, width=120, height=30,
             hover_color="#FFFFFF", state=tk.DISABLED
         )
-        self.submit_button.grid(row=6, column=0, columnspan=2, pady=(10, 0))
+        self.submit_button.grid(row=5, column=1, pady=(10, 0), sticky="w")
 
         self.form_valid = False
-
-    def on_click(self, event):
-        selected_item = self.fert_history_tree.selection()
-        if selected_item:
-            values = self.fert_history_tree.item(selected_item, "values")
-            self.duration_entry.set(values[4])
-            self.weight_entry.delete(0, tk.END)
-            self.weight_entry.insert(0, values[5])
-            self.wwr_entry.delete(0, tk.END)
-            self.wwr_entry.insert(0, values[6])
 
     def validate_weight(self, event):
         value = self.weight_entry.get()
@@ -386,7 +385,7 @@ class Fertilization(tk.Toplevel):
         date_str = self.date_entry.get()
         time_str = self.time_entry.get()
         duration = self.duration_entry.get()
-        
+
         try:
             with open("backup_data.json", "r") as file:
                 backup_data = json.load(file)
@@ -486,15 +485,18 @@ class Fertilization(tk.Toplevel):
         except Exception as e:
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
-    def proceed_to_form(self, selected_fields, selected_fertilizers):
-        # Combine the selected data
-        combined_data = {
-            "selected_fields": selected_fields,
-            "selected_fertilizers": selected_fertilizers
-        }
+    def on_click(self, event):
+        selected_item = self.fert_history_tree.selection()
+        if selected_item:
+            item_data = self.fert_history_tree.item(selected_item, 'values')
+            self.duration_entry.set(item_data[5])
+            self.weight_entry.delete(0, tk.END)
+            self.weight_entry.insert(0, item_data[6])
+            self.wwr_entry.delete(0, tk.END)
+            self.wwr_entry.insert(0, item_data[7])
 
-        # Save the combined data to a single JSON file
-        with open("backup_data.json", "w") as file:
-            json.dump(combined_data, file, indent=4)
-
-        self.show_form_page([])  # No matched entries to show in the treeview
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    app = Fertilization(root)
+    app.mainloop()
