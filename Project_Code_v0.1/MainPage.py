@@ -10,6 +10,7 @@ from aggelia import SellProductsApp
 from experiment_participation import ExperimentParticipationPage
 from product_review import ProductReviewApp
 from experiments import ExperimentApp
+from Request import Agro_Request_Start
 
 
 
@@ -190,6 +191,11 @@ def FarmerMainMenu(parent, show_main_page):
         
     def product_review():
         switch_frame(parent,ProductReviewApp(parent))
+
+    def agro_request():
+        Agro_Request_Start(parent)
+
+    
         
 
     button_texts = [
@@ -197,7 +203,7 @@ def FarmerMainMenu(parent, show_main_page):
         ("Cultivation", cultivation),
         ("Fertilization", lambda: None),
         ("Events", events),
-        ("Request for an Agronomist", lambda: None),
+        ("Request for an Agronomist", agro_request),
         ("Product Evaluation", product_review),
         ("Sell Products", create_ad),
         ("Experiment Participation", experiment_participation)
