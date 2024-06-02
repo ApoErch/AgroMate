@@ -5,7 +5,7 @@ import customtkinter as ctk
 import json
 import os
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date, datetime, timedelta
 
 class Fertilization(tk.Toplevel):
     def __init__(self, parent):
@@ -195,20 +195,27 @@ class Fertilization(tk.Toplevel):
             self.fert_history_tree.heading(col, text=col)
             self.fert_history_tree.column(col, anchor='center', width=100)
 
+        # Create a frame to hold the date and time labels and entries
+        self.date_time_frame = tk.Frame(self.form_frame, bg="#2E2E2E")
+        self.date_time_frame.pack(pady=(10, 5))
+
         # Label and DateEntry for Date
-        # Create a frame to hold the date label and entry
-        self.date_frame = tk.Frame(self.form_frame, bg="#2E2E2E")
-        self.date_frame.pack(pady=(10, 5))
-        self.date_label = tk.Label(self.date_frame, text="Date:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
-        self.date_label.pack(side=tk.LEFT, padx=(0, 10))
-        self.date_entry = DateEntry(self.date_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today())
-        self.date_entry.pack(side=tk.LEFT)
-        self.date_frame.pack(anchor='center')
+        self.date_label = tk.Label(self.date_time_frame, text="Date:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.date_label.grid(row=0, column=0, padx=(0, 10), pady=(0, 5))
+        self.date_entry = DateEntry(self.date_time_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today(), width=10)
+        self.date_entry.grid(row=0, column=1, pady=(0, 5))
 
-        # Label and TimeEntry for Time
-        # Create a frame to hold the date label and entry
+        # Calculate the next closest hour
+        now = datetime.now()
+        next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+        closest_time = f"{next_hour.hour:02}:00"
 
-
+        # Label and Entry for Time
+        self.time_label = tk.Label(self.date_time_frame, text="Time:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.time_label.grid(row=1, column=0, padx=(0, 10))
+        self.time_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=[f"{hour:02}:00" for hour in range(24)], width=10)
+        self.time_entry.grid(row=1, column=1)
+        self.time_entry.set(closest_time)
 
     def back_to_fert_menu(self):
         if os.path.exists("backup_data.json"):
