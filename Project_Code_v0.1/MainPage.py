@@ -10,7 +10,7 @@ from aggelia import SellProductsApp
 from experiment_participation import ExperimentParticipationPage
 from product_review import ProductReviewApp
 from experiments import ExperimentApp
-
+from Fertilization import Fertilization
 
 
 # Path to the credentials file
@@ -190,12 +190,15 @@ def FarmerMainMenu(parent, show_main_page):
         
     def product_review():
         switch_frame(parent,ProductReviewApp(parent))
+
+    def fertilization():
+        Fertilization(parent)
         
 
     button_texts = [
         ("Place an Order", PlaceOrder),
         ("Cultivation", cultivation),
-        ("Fertilization", lambda: None),
+        ("Fertilization", fertilization),
         ("Events", events),
         ("Request for an Agronomist", lambda: None),
         ("Product Evaluation", product_review),
