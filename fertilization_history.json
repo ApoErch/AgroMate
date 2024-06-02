@@ -1,0 +1,22 @@
+[
+    {
+        "Field Name": "Field J - 50 acres",
+        "Crop Name": "Barley",
+        "Fertilizer Name": "Nitrogen",
+        "Date": "2024-06-02",
+        "Time": "17:40",
+        "Duration": "30",
+        "Fertilizer Weight": "55",
+        "Weight/Water Ratio": "22"
+    },
+    {
+        "Field Name": "Field J - 50 acres",
+        "Crop Name": "Barley",
+        "Fertilizer Name": "Nitrogen",
+        "Date": "2024-06-02",
+        "Time": "22:00",
+        "Duration": "30",
+        "Fertilizer Weight": "23",
+        "Weight/Water Ratio": "11"
+    }
+]

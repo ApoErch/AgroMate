@@ -249,6 +249,17 @@ class Fertilization(tk.Toplevel):
         )
         self.check_form_button.grid(row=5, column=0, columnspan=2, pady=(10, 0))
 
+        # Submit Form Button
+        self.submit_button = ctk.CTkButton(
+            self.date_time_frame, text="Submit Form", command=self.submit_form,
+            fg_color="#2E2E2E", border_width=2, border_color="#00FF00",
+            text_color="#00FF00", corner_radius=8, width=120, height=30,
+            hover_color="#FFFFFF", state=tk.DISABLED
+        )
+        self.submit_button.grid(row=6, column=0, columnspan=2, pady=(10, 0))
+
+        self.form_valid = False
+
     def validate_weight(self, event):
         value = self.weight_entry.get()
         if not value.isdigit() or int(value) > 100:
@@ -266,6 +277,43 @@ class Fertilization(tk.Toplevel):
                 self.wwr_entry.delete(1, tk.END)
 
     def check_form(self):
+        date_str = self.date_entry.get()
+        time_str = self.time_entry.get()
+        duration = int(self.duration_entry.get())
+        selected_datetime = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+        current_time = datetime.now()
+        min_allowed_time = current_time + timedelta(minutes=5)
+
+        if selected_datetime < min_allowed_time:
+            messagebox.showerror("Error", "The selected date and time must be at least 5 minutes from the current time.")
+            self.form_valid = False
+            return
+
+        # Check for conflicting entries in fertilization_history.json
+        try:
+            if os.path.exists("fertilization_history.json"):
+                with open("fertilization_history.json", "r") as history_file:
+                    history_data = json.load(history_file)
+                    for entry in history_data:
+                        entry_datetime = datetime.strptime(f"{entry['Date']} {entry['Time']}", "%Y-%m-%d %H:%M")
+                        entry_duration = int(entry['Duration'])
+                        entry_end_time = entry_datetime + timedelta(minutes=entry_duration)
+                        selected_end_time = selected_datetime + timedelta(minutes=duration)
+
+                        if (selected_datetime <= entry_end_time and selected_end_time >= entry_datetime):
+                            messagebox.showerror("Error", "The selected date and time conflicts with an existing entry.")
+                            self.form_valid = False
+                            return
+
+        except json.JSONDecodeError:
+            messagebox.showerror("Error", "Error decoding the fertilization history file.")
+            self.form_valid = False
+            return
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred while checking history: {e}")
+            self.form_valid = False
+            return
+
         weight = int(self.weight_entry.get())
         try:
             with open("backup_data.json", "r") as file:
@@ -276,10 +324,86 @@ class Fertilization(tk.Toplevel):
                     stock = int(selected_fertilizer[1])  # Assuming stock is the second value in the list
                     if weight > stock:
                         messagebox.showerror("Error", f"The weight exceeds the available stock. Available stock: {stock} kg.")
+                        self.form_valid = False
                     else:
-                        messagebox.showinfo("Success", "The weight is within the available stock.")
+                        messagebox.showinfo("Success", "The Form is filled correctly")
+                        self.form_valid = True
+                        self.submit_button.configure(state=tk.NORMAL)
                 else:
                     messagebox.showerror("Error", "No fertilizer selected.")
+                    self.form_valid = False
+        except FileNotFoundError:
+            messagebox.showerror("Error", "The backup data file was not found.")
+            self.form_valid = False
+        except json.JSONDecodeError:
+            messagebox.showerror("Error", "Error decoding the backup data file.")
+            self.form_valid = False
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
+            self.form_valid = False
+
+    def submit_form(self):
+        if not self.form_valid:
+            messagebox.showerror("Error", "Please check the form before submitting.")
+            return
+
+        weight = self.weight_entry.get()
+        wwr = self.wwr_entry.get()
+        date_str = self.date_entry.get()
+        time_str = self.time_entry.get()
+        duration = self.duration_entry.get()
+        
+        try:
+            with open("backup_data.json", "r") as file:
+                backup_data = json.load(file)
+                selected_fields = backup_data["selected_fields"]
+                selected_fertilizers = backup_data["selected_fertilizers"]
+                if selected_fields and selected_fertilizers:
+                    selected_field = selected_fields[0]
+                    selected_fertilizer = selected_fertilizers[0]
+
+                    # Update fertilization_history.json
+                    fert_history = {
+                        "Field Name": selected_field[0],
+                        "Crop Name": selected_field[1],
+                        "Fertilizer Name": selected_fertilizer[0],
+                        "Date": date_str,
+                        "Time": time_str,
+                        "Duration": duration,
+                        "Fertilizer Weight": weight,
+                        "Weight/Water Ratio": wwr
+                    }
+
+                    if os.path.exists("fertilization_history.json"):
+                        with open("fertilization_history.json", "r") as history_file:
+                            history_data = json.load(history_file)
+                    else:
+                        history_data = []
+
+                    history_data.append(fert_history)
+
+                    with open("fertilization_history.json", "w") as history_file:
+                        json.dump(history_data, history_file, indent=4)
+
+                    # Update fertilizers.json
+                    updated_fert_data = []
+                    for fert in self.fert_data:
+                        if fert["Fertilizer"] == selected_fertilizer[0]:
+                            fert["Stock"] = str(int(fert["Stock"]) - int(weight))
+                        updated_fert_data.append(fert)
+
+                    with open("fertilizers.json", "w") as fert_file:
+                        json.dump(updated_fert_data, fert_file, indent=4)
+
+                    # Close file before deleting
+                    file.close()
+
+                    # Delete backup_data.json
+                    os.remove("backup_data.json")
+
+                    messagebox.showinfo("Success", "Fertilization record added and fertilizers updated successfully.")
+                    self.back_to_fert_menu()
+
         except FileNotFoundError:
             messagebox.showerror("Error", "The backup data file was not found.")
         except json.JSONDecodeError:
@@ -288,6 +412,7 @@ class Fertilization(tk.Toplevel):
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
     def back_to_fert_menu(self):
+        self.form_valid = False
         if os.path.exists("backup_data.json"):
             os.remove("backup_data.json")
 
