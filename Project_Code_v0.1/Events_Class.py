@@ -3,6 +3,11 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import customtkinter as ctk
 
+import tkinter as tk
+from tkinter import ttk, messagebox
+import customtkinter as ctk
+
+
 class RejectionPage(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -17,6 +22,7 @@ class RejectionPage(tk.Toplevel):
                                      border_color="#FF0000", text_color="#FF0000", corner_radius=8, width=200, height=40,
                                      hover_color="#FFFFFF")
         close_button.pack(pady=20)
+
 
 class Events(tk.Toplevel):
     def __init__(self, parent, user_details):
@@ -139,8 +145,20 @@ class Events(tk.Toplevel):
                     "Location": event_location
                 }
 
-                register_root.destroy()
-                self.show_add_to_calendar_page(event_name, event_datetime, event_location)
+                add_to_calendar = messagebox.askquestion("Add to Calendar", "Do you want to add this event to your calendar?\nIt is recommended to add the event to your calendar.")
+
+                if add_to_calendar == 'yes':
+                    register_root.destroy()
+                    messagebox.showinfo("Success", "Event is added to your calendar")
+                else:
+                    register_root.destroy()
+                    pass
+                invite_friends = messagebox.askquestion("Invite Friends", "Do you want to invite friends to this event?")
+                if invite_friends == 'yes':
+                    self.invite_friends_page(event_name)
+                else:
+                    messagebox.showinfo("Success", "Registration Successful!")
+                    self.parent.show_main_menu()
 
         register_button = ctk.CTkButton(register_root, text="Register", command=register, fg_color=self.BUTTON_BG_COLOR, text_color=self.BUTTON_TEXT_COLOR, corner_radius=8)
         register_button.pack(pady=10)
@@ -148,28 +166,7 @@ class Events(tk.Toplevel):
         back_button = ctk.CTkButton(register_root, text="Back", command=lambda: self.back_to_events(register_root), fg_color="#FE2020", text_color='white', corner_radius=8)
         back_button.pack()
 
-    def show_add_to_calendar_page(self, event_name, event_datetime, event_location):
-        add_to_calendar_root = tk.Toplevel(self)
-        add_to_calendar_root.title("Add to Calendar")
-        add_to_calendar_root.geometry("400x200")
-        add_to_calendar_root.configure(bg=self.BG_COLOR)
-
-        add_label = tk.Label(add_to_calendar_root, text="Do you want to add this event to your calendar?", font=("Arial", 14), bg=self.BG_COLOR, fg=self.BUTTON_BG_COLOR)
-        add_label.pack(pady=20)
-
-        yes_button = ctk.CTkButton(add_to_calendar_root, text="Yes", command=lambda: self.confirm_add_to_calendar(add_to_calendar_root, event_name, event_datetime, event_location), fg_color=self.BUTTON_BG_COLOR, text_color=self.BUTTON_TEXT_COLOR, corner_radius=8)
-        yes_button.pack(side="left", padx=20)
-
-        no_button = ctk.CTkButton(add_to_calendar_root, text="No", command=lambda: self.invite_friends_page(add_to_calendar_root, event_name, event_datetime, event_location), fg_color="#FE2020", text_color='white', corner_radius=8)
-        no_button.pack(side="right", padx=20)
-
-    def confirm_add_to_calendar(self, root, event_name, event_datetime, event_location):
-        root.destroy()
-        messagebox.showinfo("Success", "Event is added to your calendar")
-        self.invite_friends_page(root, event_name, event_datetime, event_location)
-
-    def invite_friends_page(self, root, event_name, event_datetime, event_location):
-        root.destroy()
+    def invite_friends_page(self, event_name):
         invite_root = tk.Toplevel(self)
         invite_root.title("Invite Friends")
         invite_root.geometry("600x400")
@@ -185,10 +182,10 @@ class Events(tk.Toplevel):
         friends_tree.column("Email", anchor="center")
         friends_tree.pack(padx=10, pady=10)
 
-        send_invite_button = ctk.CTkButton(invite_root, text="Send Invites", command=lambda: self.send_invites(invite_root, event_name, event_datetime, event_location, friends_tree), fg_color=self.BUTTON_BG_COLOR, text_color=self.BUTTON_TEXT_COLOR, corner_radius=8)
+        send_invite_button = ctk.CTkButton(invite_root, text="Send Invites", command=lambda: self.send_invites(invite_root, event_name, friends_tree), fg_color=self.BUTTON_BG_COLOR, text_color=self.BUTTON_TEXT_COLOR, corner_radius=8)
         send_invite_button.pack(pady=10)
 
-        cancel_button = ctk.CTkButton(invite_root, text="Cancel", command=lambda: self.confirmation_page(invite_root, event_name, event_datetime, event_location), fg_color="#FE2020", text_color='white', corner_radius=8)
+        cancel_button = ctk.CTkButton(invite_root, text="Cancel", command=lambda: self.cancel_invite(invite_root), fg_color="#FE2020", text_color='white', corner_radius=8)
         cancel_button.pack()
 
         friends_list = [
@@ -200,33 +197,22 @@ class Events(tk.Toplevel):
         for friend in friends_list:
             friends_tree.insert("", "end", values=friend)
 
-    def send_invites(self, root, event_name, event_datetime, event_location, friends_tree):
+    def send_invites(self, root, event_name, friends_tree):
         selected_item = friends_tree.focus()
         if selected_item:
             selected_friend = friends_tree.item(selected_item, 'values')[0]
             messagebox.showinfo("Success", f"Invitation sent to {selected_friend}!")
-            self.confirmation_page(root, event_name, event_datetime, event_location)
+            root.destroy()
+            self.parent.show_main_menu()
         else:
             messagebox.showerror("Error", "Please select a friend to send the invite to.")
 
-    def confirmation_page(self, root, event_name, event_datetime, event_location):
+    def cancel_invite(self, root):
         root.destroy()
-        confirmation_root = tk.Toplevel(self)
-        confirmation_root.title("Registration Successful")
-        confirmation_root.geometry("400x200")
-        confirmation_root.configure(bg=self.BG_COLOR)
-
-        confirmation_label = tk.Label(confirmation_root, text=f"Registration Successful!\n\nEvent: {event_name}\nDate and Time: {event_datetime}\nLocation: {event_location}",
-                                      font=("Arial", 14), bg=self.BG_COLOR, fg=self.BUTTON_BG_COLOR)
-        confirmation_label.pack(pady=20)
-
-        done_button = ctk.CTkButton(confirmation_root, text="Done", command=lambda: self.finish_registration(confirmation_root), fg_color=self.BUTTON_BG_COLOR, text_color=self.BUTTON_TEXT_COLOR, corner_radius=8)
-        done_button.pack(side="right", padx=20)
-
-    def finish_registration(self, root):
-        root.destroy()
-        
+        messagebox.showinfo("Success", "Registration Successful")
+        self.parent.show_main_menu()
 
     def back_to_events(self, root):
         root.destroy()
         self.deiconify()
+
