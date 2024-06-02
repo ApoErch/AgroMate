@@ -199,10 +199,12 @@ class Fertilization(tk.Toplevel):
         self.date_time_frame = tk.Frame(self.form_frame, bg="#2E2E2E")
         self.date_time_frame.pack(pady=(10, 5))
 
+        label_width = 30
+
         # Label and DateEntry for Date
-        self.date_label = tk.Label(self.date_time_frame, text="Date:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.date_label = tk.Label(self.date_time_frame, text="Date:", font=("Arial", 12), bg="#2E2E2E", fg="#00FF00", width=label_width, anchor='w')
         self.date_label.grid(row=0, column=0, padx=(0, 10), pady=(0, 5))
-        self.date_entry = DateEntry(self.date_time_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today(), width=10, state='readonly')
+        self.date_entry = DateEntry(self.date_time_frame, font=("Arial", 12), date_pattern='yyyy-mm-dd', mindate=date.today(), width=10, state='readonly')
         self.date_entry.grid(row=0, column=1, pady=(0, 5))
 
         # Calculate the next closest hour
@@ -211,18 +213,79 @@ class Fertilization(tk.Toplevel):
         closest_time = f"{next_hour.hour:02}:00"
 
         # Label and Entry for Time
-        self.time_label = tk.Label(self.date_time_frame, text="Time:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.time_label = tk.Label(self.date_time_frame, text="Time:", font=("Arial", 12), bg="#2E2E2E", fg="#00FF00", width=label_width, anchor='w')
         self.time_label.grid(row=1, column=0, padx=(0, 10))
-        self.time_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=[f"{hour:02}:00" for hour in range(24)], width=10, state='readonly')
+        self.time_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 12), values=[f"{hour:02}:00" for hour in range(24)], width=10, state='readonly')
         self.time_entry.grid(row=1, column=1)
         self.time_entry.set(closest_time)
 
         # Label and Entry for Duration
-        self.duration_label = tk.Label(self.date_time_frame, text="Duration:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.duration_label = tk.Label(self.date_time_frame, text="Duration:", font=("Arial", 12), bg="#2E2E2E", fg="#00FF00", width=label_width, anchor='w')
         self.duration_label.grid(row=2, column=0, padx=(0, 10), pady=(5, 0))
-        self.duration_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=["30", "60", "90", "120", "150"], width=10, state='readonly')
+        self.duration_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 12), values=["30", "60", "90", "120", "150"], width=10, state='readonly')
         self.duration_entry.grid(row=2, column=1, pady=(5, 0))
         self.duration_entry.current(0)
+
+        # Label and Entry for Weight
+        self.weight_label = tk.Label(self.date_time_frame, text="Weight (up to 100kg):", font=("Arial", 12), bg="#2E2E2E", fg="#00FF00", width=label_width, anchor='w')
+        self.weight_label.grid(row=3, column=0, padx=(0, 10), pady=(5, 0))
+        self.weight_entry = tk.Entry(self.date_time_frame, font=("Arial", 12), width=13)  # Same width as duration_entry
+        self.weight_entry.grid(row=3, column=1, pady=(5, 0))
+        self.weight_entry.bind('<KeyRelease>', self.validate_weight)
+
+        # Label and Entry for WWR (Weight/Water Ratio)
+        self.wwr_label = tk.Label(self.date_time_frame, text="Weight/Water Ratio (up to 30%):", font=("Arial", 12), bg="#2E2E2E", fg="#00FF00", width=label_width, anchor='w')
+        self.wwr_label.grid(row=4, column=0, padx=(0, 10), pady=(5, 0))
+        self.wwr_entry = tk.Entry(self.date_time_frame, font=("Arial", 12), width=13)  # Same width as duration_entry
+        self.wwr_entry.grid(row=4, column=1, pady=(5, 0))
+        self.wwr_entry.bind('<KeyRelease>', self.validate_wwr)
+
+        # Check Form Button
+        self.check_form_button = ctk.CTkButton(
+            self.date_time_frame, text="Check Form", command=self.check_form,
+            fg_color="#2E2E2E", border_width=2, border_color="#00FF00",
+            text_color="#00FF00", corner_radius=8, width=120, height=30,
+            hover_color="#FFFFFF"
+        )
+        self.check_form_button.grid(row=5, column=0, columnspan=2, pady=(10, 0))
+
+    def validate_weight(self, event):
+        value = self.weight_entry.get()
+        if not value.isdigit() or int(value) > 100:
+            self.weight_entry.delete(0, tk.END)
+            self.weight_entry.insert(0, ''.join(filter(str.isdigit, value))[:3])
+            if int(self.weight_entry.get() or 0) > 100:
+                self.weight_entry.delete(2, tk.END)
+
+    def validate_wwr(self, event):
+        value = self.wwr_entry.get()
+        if not value.isdigit() or int(value) > 30:
+            self.wwr_entry.delete(0, tk.END)
+            self.wwr_entry.insert(0, ''.join(filter(str.isdigit, value))[:2])
+            if int(self.wwr_entry.get() or 0) > 30:
+                self.wwr_entry.delete(1, tk.END)
+
+    def check_form(self):
+        weight = int(self.weight_entry.get())
+        try:
+            with open("backup_data.json", "r") as file:
+                backup_data = json.load(file)
+                selected_fertilizers = backup_data["selected_fertilizers"]
+                if selected_fertilizers:
+                    selected_fertilizer = selected_fertilizers[0]
+                    stock = int(selected_fertilizer[1])  # Assuming stock is the second value in the list
+                    if weight > stock:
+                        messagebox.showerror("Error", f"The weight exceeds the available stock. Available stock: {stock} kg.")
+                    else:
+                        messagebox.showinfo("Success", "The weight is within the available stock.")
+                else:
+                    messagebox.showerror("Error", "No fertilizer selected.")
+        except FileNotFoundError:
+            messagebox.showerror("Error", "The backup data file was not found.")
+        except json.JSONDecodeError:
+            messagebox.showerror("Error", "Error decoding the backup data file.")
+        except Exception as e:
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
     def back_to_fert_menu(self):
         if os.path.exists("backup_data.json"):
@@ -234,3 +297,9 @@ class Fertilization(tk.Toplevel):
     def show_filter(self):
         # Implement the logic for the filter functionality
         messagebox.showinfo("Info", "Filter button clicked!")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.withdraw()  # Hide the root window
+    app = Fertilization(root)
+    app.mainloop()
