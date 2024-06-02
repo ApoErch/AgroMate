@@ -202,7 +202,7 @@ class Fertilization(tk.Toplevel):
         # Label and DateEntry for Date
         self.date_label = tk.Label(self.date_time_frame, text="Date:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
         self.date_label.grid(row=0, column=0, padx=(0, 10), pady=(0, 5))
-        self.date_entry = DateEntry(self.date_time_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today(), width=10)
+        self.date_entry = DateEntry(self.date_time_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today(), width=10, state='readonly')
         self.date_entry.grid(row=0, column=1, pady=(0, 5))
 
         # Calculate the next closest hour
@@ -213,9 +213,16 @@ class Fertilization(tk.Toplevel):
         # Label and Entry for Time
         self.time_label = tk.Label(self.date_time_frame, text="Time:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
         self.time_label.grid(row=1, column=0, padx=(0, 10))
-        self.time_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=[f"{hour:02}:00" for hour in range(24)], width=10)
+        self.time_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=[f"{hour:02}:00" for hour in range(24)], width=10, state='readonly')
         self.time_entry.grid(row=1, column=1)
         self.time_entry.set(closest_time)
+
+        # Label and Entry for Duration
+        self.duration_label = tk.Label(self.date_time_frame, text="Duration:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.duration_label.grid(row=2, column=0, padx=(0, 10), pady=(5, 0))
+        self.duration_entry = ttk.Combobox(self.date_time_frame, font=("Arial", 14), values=["30", "60", "90", "120", "150"], width=10, state='readonly')
+        self.duration_entry.grid(row=2, column=1, pady=(5, 0))
+        self.duration_entry.current(0)
 
     def back_to_fert_menu(self):
         if os.path.exists("backup_data.json"):
