@@ -3,6 +3,9 @@ from tkinter import messagebox
 from tkinter import ttk
 import customtkinter as ctk
 import json
+import os
+from tkcalendar import DateEntry
+from datetime import date
 
 class Fertilization(tk.Toplevel):
     def __init__(self, parent):
@@ -13,6 +16,10 @@ class Fertilization(tk.Toplevel):
         self.title("Fertilization")
         self.main_menu_frame = tk.Frame(self, bg="#2E2E2E")
         self.main_menu_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Cultivation history and fertilizer data
+        self.cult_history = {}
+        self.fert_data = []
 
         # Variable that we use to imitate the check to see if the control system is on
         self.control_system_check = 1
@@ -30,7 +37,8 @@ class Fertilization(tk.Toplevel):
             self.destroy()  # Close the current window
 
     def fert_menu(self, parent_frame):
-        parent_frame.destroy()
+        for widget in self.winfo_children():
+            widget.destroy()
         self.fert_frame = tk.Frame(self, bg="#2E2E2E")
         self.fert_frame.pack(expand=True, fill=tk.BOTH)
 
@@ -107,8 +115,8 @@ class Fertilization(tk.Toplevel):
     def load_cultivation_history(self):
         try:
             with open("cultivation_history.json", "r") as file:
-                data = json.load(file)
-                for field, details in data.items():
+                self.cult_history = json.load(file)
+                for field, details in self.cult_history.items():
                     self.tree.insert("", "end", values=(
                         field,
                         details.get("Crop", ""),
@@ -126,9 +134,9 @@ class Fertilization(tk.Toplevel):
     def load_all_fertilizers(self):
         try:
             with open("fertilizers.json", "r") as file:
-                data = json.load(file)
+                self.fert_data = json.load(file)
                 self.fert_tree.delete(*self.fert_tree.get_children())  # Clear existing rows
-                for fert in data:
+                for fert in self.fert_data:
                     self.fert_tree.insert("", "end", values=(
                         fert.get("Fertilizer", ""),
                         fert.get("Stock", ""),
@@ -140,8 +148,74 @@ class Fertilization(tk.Toplevel):
             messagebox.showerror("Error", "Error decoding the fertilizers file.")
 
     def show_form_page(self):
-        # Implement the logic for the next page or form
-        messagebox.showinfo("Info", "Next button clicked!")
+        # Get selected items from tree
+        selected_fields = [self.tree.item(item, "values") for item in self.tree.selection()]
+        
+        # Get selected items from fert_tree
+        selected_fertilizers = [self.fert_tree.item(item, "values") for item in self.fert_tree.selection()]
+
+        # Combine the selected data
+        combined_data = {
+            "selected_fields": selected_fields,
+            "selected_fertilizers": selected_fertilizers
+        }
+
+        # Save the combined data to a single JSON file
+        with open("backup_data.json", "w") as file:
+            json.dump(combined_data, file, indent=4)
+
+        messagebox.showinfo("Info", "Selected data saved successfully!")
+
+        self.fert_frame.destroy()
+        self.form_frame = tk.Frame(self, bg="#2E2E2E")
+        self.form_frame.pack(expand=True, fill=tk.BOTH)
+
+        # Create a frame to hold the back button
+        self.button_frame_top = tk.Frame(self.form_frame, bg="#2E2E2E")
+        self.button_frame_top.pack(fill=tk.X, padx=(10, 10))
+
+        # Back button
+        self.back_button = ctk.CTkButton(
+            self.button_frame_top, text="Back", command=self.back_to_fert_menu,
+            fg_color="#2E2E2E", border_width=2, border_color="#00FF00",
+            text_color="#00FF00", corner_radius=8, width=40, height=30,
+            hover_color="#FFFFFF"
+        )
+        self.back_button.pack(side=tk.LEFT, pady=(10, 0))
+
+        # Field label
+        self.field_title = tk.Label(self.form_frame, text="Fertilization History of this Field with this Fertilizer", font=("Arial", 16), bg="#2E2E2E", fg="#00FF00")
+        self.field_title.pack(pady=(10, 5), anchor='n')
+
+        # Treeview Fertilization History of this Field with this Fertilizer
+        fert_history_columns = ("Field", "Crop", "Date", "Time", "Fertilizer")
+        self.fert_history_tree = ttk.Treeview(self.form_frame, columns=fert_history_columns, height=3, show='headings', style="Custom.Treeview")
+        self.fert_history_tree.pack(pady=20, padx=10, expand=True, fill=tk.BOTH)
+        for col in fert_history_columns:
+            self.fert_history_tree.heading(col, text=col)
+            self.fert_history_tree.column(col, anchor='center', width=100)
+
+        # Label and DateEntry for Date
+        # Create a frame to hold the date label and entry
+        self.date_frame = tk.Frame(self.form_frame, bg="#2E2E2E")
+        self.date_frame.pack(pady=(10, 5))
+        self.date_label = tk.Label(self.date_frame, text="Date:", font=("Arial", 14), bg="#2E2E2E", fg="#00FF00")
+        self.date_label.pack(side=tk.LEFT, padx=(0, 10))
+        self.date_entry = DateEntry(self.date_frame, font=("Arial", 14), date_pattern='yyyy-mm-dd', mindate=date.today())
+        self.date_entry.pack(side=tk.LEFT)
+        self.date_frame.pack(anchor='center')
+
+        # Label and TimeEntry for Time
+        # Create a frame to hold the date label and entry
+
+
+
+    def back_to_fert_menu(self):
+        if os.path.exists("backup_data.json"):
+            os.remove("backup_data.json")
+
+        self.form_frame.destroy()
+        self.fert_menu(self)
 
     def show_filter(self):
         # Implement the logic for the filter functionality
