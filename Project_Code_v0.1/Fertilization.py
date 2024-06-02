@@ -494,9 +494,3 @@ class Fertilization(tk.Toplevel):
             self.weight_entry.insert(0, item_data[6])
             self.wwr_entry.delete(0, tk.END)
             self.wwr_entry.insert(0, item_data[7])
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    root.withdraw()  # Hide the root window
-    app = Fertilization(root)
-    app.mainloop()
